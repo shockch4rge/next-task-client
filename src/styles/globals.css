@@ -6,6 +6,15 @@
     margin: 0;
 }
 
+html {
+    height: 100%;
+}
+
+body {
+    min-height: 100%;
+    background: #f6f7f8;
+}
+
 a {
     color: inherit;
     text-decoration: none;
