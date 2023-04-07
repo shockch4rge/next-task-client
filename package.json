@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@lifesg/react-design-system": "1.0.0-alpha.23",
+    "@lifesg/react-icons": "^1.2.0",
     "next": "13.2.4",
     "react": "18.2.0",
     "react-dom": "18.2.0",
