@@ -1,10 +1,209 @@
+import { ErrorMessage, Field, Form as FormikForm, Formik } from "formik";
 import Head from "next/head";
+import Image from "next/image";
+import { useRouter } from "next/router";
+import { useMemo, useState } from "react";
+import useSWR from "swr";
+import * as Yup from "yup";
 
-import { Button } from "@lifesg/react-design-system/button";
-import { Text } from "@lifesg/react-design-system";
-import Link from "next/link";
+import { ButtonIcon } from "@/components";
+import { ApiRoutes } from "@/util/ApiRoute";
+import { AppRoutes } from "@/util/AppRoute";
+import { Button, Footer, Form, Layout, Modal, Navbar, Text } from "@lifesg/react-design-system";
+import { ArrowRightIcon } from "@lifesg/react-icons/arrow-right";
+import { EyeFillIcon } from "@lifesg/react-icons/eye-fill";
+import { EyeSlashFillIcon } from "@lifesg/react-icons/eye-slash-fill";
+
+import type { User } from "@/models/User";
+const LoginModal = ({ show, onClose }: { show: boolean; onClose: () => void }) => {
+    return (
+        <Modal show={show} onOverlayClick={onClose}>
+            <Modal.Box
+                onClose={onClose}
+                style={{
+                    padding: "3rem 2rem",
+                    minHeight: "24rem",
+                    overflow: "auto",
+                }}
+            >
+                <Text.D3 style={{ marginBottom: "1.5rem" }}>Login</Text.D3>
+                <Form.Input label="Email" />
+                <Form.Input label="Password" />
+                <Button.Default
+                    onClick={() => {}}
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        margin: "1rem 0",
+                    }}
+                >
+                    Login <ArrowRightIcon />
+                </Button.Default>
+                <Text.Hyperlink.Small
+                    href={AppRoutes.Home()}
+                    style={{
+                        textAlign: "center",
+                        textDecoration: "underline",
+                    }}
+                >
+                    Register
+                </Text.Hyperlink.Small>
+            </Modal.Box>
+        </Modal>
+    );
+};
+
+const SignUpModal = ({ show, onClose }: { show: boolean; onClose: () => void }) => {
+    // TODO: add router.push to redirect to board page
+    const router = useRouter();
+    const [showPassword, setShowPassword] = useState(true);
+    const { data, error } = useSWR<User, Error>(
+        ApiRoutes.GetUserById("123"),
+        key => fetch(key).then()
+    );
+
+    const fields = {
+        name: "name",
+        email: "email",
+        password: "password",
+        confirmPassword: "confirmPassword",
+    } as const;
+
+    const schema = useMemo(
+        () =>
+            Yup.object().shape({
+                [fields.name]: Yup.string().required("Name is required."),
+                [fields.email]: Yup.string()
+                    .email("Invalid email")
+                    .required("Your email is required."),
+                [fields.password]: Yup.string().required("A password is required."),
+                [fields.confirmPassword]: Yup.string()
+                    .oneOf([Yup.ref(fields.password)], "Passwords must match")
+                    .required("You must confirm your password."),
+            }),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        []
+    );
+
+    return (
+        <Modal show={show} onOverlayClick={onClose}>
+            <Modal.Box
+                onClose={onClose}
+                style={{
+                    padding: "2rem 2rem",
+                    minHeight: "30rem",
+                    overflow: "auto",
+                }}
+            >
+                <Text.D3 style={{ marginBottom: "1.5rem" }}>Sign Up</Text.D3>
+                <Formik
+                    validationSchema={schema}
+                    initialValues={{
+                        name: "",
+                        email: "",
+                        password: "",
+                        confirmPassword: "",
+                    }}
+                    onSubmit={async values => {
+                        console.log(values);
+                    }}
+                >
+                    {({ isSubmitting, isValid }) => 
+                        <FormikForm
+                            style={{ display: "flex", flexDirection: "column", gap: "2em" }}
+                        >
+                            <div>
+                                <Field name={fields.name} as={Form.Input} label="Name" />
+                                <ErrorMessage name={fields.name} />
+                            </div>
+                            <div>
+                                <Field name={fields.email} as={Form.Input} label="Email" />
+                                <ErrorMessage name={fields.email} />
+                            </div>
+                            <div>
+                                <Field
+                                    name={fields.password}
+                                    as={Form.InputGroup}
+                                    label="Password"
+                                    addon={{
+                                        type: "custom",
+                                        attributes: {
+                                            children: 
+                                                <ButtonIcon
+                                                    onClick={() => setShowPassword(!showPassword)}
+                                                    focusOutline="browser"
+                                                    focusHighlight={false}
+                                                >
+                                                    {showPassword ? 
+                                                        <EyeFillIcon />
+                                                        : 
+                                                        <EyeSlashFillIcon />
+                                                    }
+                                                </ButtonIcon>
+                                            ,
+                                        },
+                                        position: "right",
+                                    }}
+                                />
+                                <ErrorMessage name={fields.password} />
+                            </div>
+                            <div>
+                                <Field
+                                    name={fields.confirmPassword}
+                                    as={Form.InputGroup}
+                                    label="Confirm Password"
+                                    addon={{
+                                        type: "custom",
+                                        attributes: {
+                                            children: 
+                                                <ButtonIcon
+                                                    onClick={() => setShowPassword(!showPassword)}
+                                                    focusOutline="browser"
+                                                    focusHighlight={false}
+                                                >
+                                                    {showPassword ? 
+                                                        <EyeFillIcon />
+                                                        : 
+                                                        <EyeSlashFillIcon />
+                                                    }
+                                                </ButtonIcon>
+                                            ,
+                                        },
+                                        position: "right",
+                                    }}
+                                />
+                                <ErrorMessage name={fields.confirmPassword} />
+                            </div>
+
+                            <Button.Default
+                                disabled={!isValid || isSubmitting}
+                                loading={isSubmitting}
+                                type="submit"
+                                style={{ marginTop: "1rem" }}
+                            >
+                                Sign Up <ArrowRightIcon />
+                            </Button.Default>
+                            <Text.Hyperlink.Small
+                                href={AppRoutes.Home()}
+                                style={{
+                                    textAlign: "center",
+                                    textDecoration: "underline",
+                                }}
+                            >
+                                Login
+                            </Text.Hyperlink.Small>
+                        </FormikForm>
+                    }
+                </Formik>
+            </Modal.Box>
+        </Modal>
+    );
+};
 
 export default function Home() {
+    const [isLoginModalOpen, setLoginModalOpen] = useState(false);
+    const [isSignUpModalOpen, setSignUpModalOpen] = useState(false);
+
     return (
         <>
             <Head>
@@ -13,13 +212,95 @@ export default function Home() {
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <main>
-                <Text.D1>NextTask</Text.D1>
-                <Text.Body>The best task tracker that no one will use</Text.Body>
-                <br />
-                <Link href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">
-                    <Button.Default>Click me!</Button.Default>
-                </Link>
+                <Navbar
+                    items={{
+                        desktop: [],
+                        mobile: [
+                            {
+                                id: "home-mobile",
+                                children: "Home",
+                                href: "https://www.life.gov.sg",
+                            },
+                            {
+                                id: "guides-mobile",
+                                children: "Guides",
+                                href: "https://www.life.gov.sg",
+                            },
+                            {
+                                id: "lifesg-app-mobile",
+                                children: "LifeSG app",
+                                href: "https://www.life.gov.sg",
+                            },
+                            {
+                                id: "blog-mobile",
+                                children: "Blog",
+                                href: "https://www.life.gov.sg/blog",
+                            },
+                        ],
+                    }}
+                    actionButtons={{
+                        desktop: [
+                            {
+                                type: "button",
+                                args: {
+                                    children: "Sign Up",
+                                    styleType: "secondary",
+                                    onClick: () => setSignUpModalOpen(!isSignUpModalOpen),
+                                },
+                            },
+                            {
+                                type: "button",
+                                args: {
+                                    children: "Log In",
+                                    onClick: () => setLoginModalOpen(!isLoginModalOpen),
+                                },
+                            },
+                        ],
+                    }}
+                    selectedId={"home"}
+                    fixed={false}
+                    resources={{
+                        primary: {
+                            brandName: "NextTask",
+                            logoSrc:
+                                "https://assets-global.website-files.com/62176f9ffac2c484f913de2a/6218d8248b78cfc8aa32a902_logo.svg",
+                        },
+                    }}
+                />
+                <Layout.Container
+                    style={{
+                        padding: "8rem 0",
+                        height: "100%",
+                        alignItems: "center",
+                        justifyContent: "center",
+                    }}
+                >
+                    <Text.D1 style={{ marginTop: "1.4rem", maxWidth: "20ch" }}>
+                        Deal with your tasks the right way.
+                    </Text.D1>
+                    <Image
+                        width={536}
+                        height={354}
+                        alt="Hello"
+                        src="https://picsum.photos/id/237/536/354"
+                    />
+                </Layout.Container>
             </main>
+            <Footer
+                lastUpdated={new Date()}
+                logoSrc="https://assets-global.website-files.com/62176f9ffac2c484f913de2a/6218d8248b78cfc8aa32a902_logo.svg"
+                links={[
+                    [
+                        {
+                            children: "GitHub",
+                            href: "https://github.com/shockch4rge/next-task-client",
+                        },
+                    ],
+                ]}
+            />
+
+            <LoginModal show={isLoginModalOpen} onClose={() => setLoginModalOpen(false)} />
+            <SignUpModal show={isSignUpModalOpen} onClose={() => setSignUpModalOpen(false)} />
         </>
     );
 }
