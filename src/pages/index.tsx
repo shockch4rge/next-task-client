@@ -2,7 +2,7 @@ import { ErrorMessage, Field, Form as FormikForm, Formik } from "formik";
 import Head from "next/head";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import * as Yup from "yup";
 
@@ -203,6 +203,20 @@ const SignUpModal = ({ show, onClose }: { show: boolean; onClose: () => void }) 
 export default function Home() {
     const [isLoginModalOpen, setLoginModalOpen] = useState(false);
     const [isSignUpModalOpen, setSignUpModalOpen] = useState(false);
+    const [scrollPosition, setScrollPosition] = useState(0);
+
+    const handleScroll = () => {
+        const position = window.pageYOffset;
+        setScrollPosition(position);
+    };
+
+    useEffect(() => {
+        window.addEventListener("scroll", handleScroll, { passive: true });
+
+        return () => {
+            window.removeEventListener("scroll", handleScroll);
+        };
+    }, []);
 
     return (
         <>
@@ -258,37 +272,39 @@ export default function Home() {
                         ],
                     }}
                     selectedId={"home"}
-                    fixed={false}
+                    compress={scrollPosition > 100}
                     resources={{
                         primary: {
                             brandName: "NextTask",
                             logoSrc:
-                                "https://assets-global.website-files.com/62176f9ffac2c484f913de2a/6218d8248b78cfc8aa32a902_logo.svg",
+                                "/NextTask-Logo.svg",
                         },
                     }}
+					
                 />
                 <Layout.Container
                     style={{
-                        padding: "8rem 0",
-                        height: "100%",
+                        height: "100vh",
                         alignItems: "center",
                         justifyContent: "center",
                     }}
+                    type="flex"
                 >
-                    <Text.D1 style={{ marginTop: "1.4rem", maxWidth: "20ch" }}>
+                    <Text.D1 style={{ maxWidth: "20ch" }}>
                         Deal with your tasks the right way.
                     </Text.D1>
                     <Image
                         width={536}
                         height={354}
                         alt="Hello"
-                        src="https://picsum.photos/id/237/536/354"
+                        src="/feature-img.svg"
                     />
                 </Layout.Container>
             </main>
             <Footer
                 lastUpdated={new Date()}
-                logoSrc="https://assets-global.website-files.com/62176f9ffac2c484f913de2a/6218d8248b78cfc8aa32a902_logo.svg"
+                copyrightInfo="© 2023 NextTask"
+                logoSrc="/next-task-Logo.svg"
                 links={[
                     [
                         {
