@@ -29,7 +29,7 @@ export default function boards({ data }: BoardsProps) {
                 <Divider />
                 <BoardGrid>
                     {data.map(board => 
-                        <BoardCard key={board.id} title={board.description} description={board.description} />
+                        <BoardCard key={board.id} id={board.id} title={board.description} description={board.description} />
                     )}
                 </BoardGrid>
             </Layout.Content>

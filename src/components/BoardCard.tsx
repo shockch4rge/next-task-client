@@ -3,6 +3,8 @@ import React from "react";
 import { ButtonIcon } from "./ButtonIcon";
 import { ChevronRightIcon } from "@lifesg/react-icons";
 import styled from "styled-components";
+import { useRouter } from "next/router";
+import { AppRoutes } from "@/util/AppRoute";
 
 const InfoCard = styled(Card)`
 	min-width: 20rem;
@@ -27,16 +29,24 @@ const CardDescription = styled(Text.BodySmall)`
 const CardContainer = styled.div`
 	display: flex;
 	justify-content: space-between;
+	align-items: center;
 `;
 
 interface BoardCardProps {
+	id: string;
 	title: string;
 	description: string;
 }
 
-function BoardCard({ title, description }: BoardCardProps) {
+function BoardCard({ id, title, description }: BoardCardProps) {
+
+    const router = useRouter(); 
+ 
     return (
-        <InfoCard>
+        <InfoCard onClick={() => {
+            router.push(AppRoutes.Board(id));
+        }
+        }>
             <CardContainer>
                 <div style={{
                     width: "100%",
@@ -48,9 +58,7 @@ function BoardCard({ title, description }: BoardCardProps) {
                         {description}
                     </CardDescription>
                 </div>
-                <ButtonIcon>
-                    <ChevronRightIcon />
-                </ButtonIcon>
+                <ChevronRightIcon />
             </CardContainer>
         </InfoCard>
     );

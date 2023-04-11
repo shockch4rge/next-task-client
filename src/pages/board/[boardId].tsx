@@ -1,9 +1,12 @@
+import { useRouter } from "next/router";
 import React from "react";
 
-const boardId = () => {
-    return (
-        <div>[boardId]</div>
-    );
-};
+export default function Board() {
+    const router = useRouter();
 
-export default boardId;
+    const { boardId } = router.query;
+
+    return (
+        <div>{boardId}</div>
+    );
+}
