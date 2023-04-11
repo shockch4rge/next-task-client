@@ -277,7 +277,7 @@ export default function Home() {
                         primary: {
                             brandName: "NextTask",
                             logoSrc:
-                                "/NextTask-Logo.svg",
+                                "/next-task-logo.svg",
                         },
                     }}
 					
