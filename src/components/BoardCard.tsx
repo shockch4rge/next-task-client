@@ -5,7 +5,7 @@ import { ChevronRightIcon } from "@lifesg/react-icons";
 import styled from "styled-components";
 
 const InfoCard = styled(Card)`
-	width: 20rem;
+	min-width: 20rem;
 	cursor: pointer;
 	transition: box-shadow 0.2s ease-in-out;
 	&:hover {
@@ -14,14 +14,14 @@ const InfoCard = styled(Card)`
 `;
 
 const CardTitle = styled(Text.H2)`
-	width: 15rem;
+	width: 80%;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
 `;
 
 const CardDescription = styled(Text.BodySmall)`
-	max-width: 20ch;
+	max-width: 80%;
 `;
 
 const CardContainer = styled.div`
@@ -29,16 +29,23 @@ const CardContainer = styled.div`
 	justify-content: space-between;
 `;
 
-const BoardCard = () => {
+interface BoardCardProps {
+	title: string;
+	description: string;
+}
+
+function BoardCard({ title, description }: BoardCardProps) {
     return (
         <InfoCard>
             <CardContainer>
-                <div>
+                <div style={{
+                    width: "100%",
+                }}>
                     <CardTitle>
-						Board name
+                        {title}
                     </CardTitle>
                     <CardDescription>
-						Board Description
+                        {description}
                     </CardDescription>
                 </div>
                 <ButtonIcon>
@@ -47,6 +54,6 @@ const BoardCard = () => {
             </CardContainer>
         </InfoCard>
     );
-};
+}
 
 export default BoardCard;
