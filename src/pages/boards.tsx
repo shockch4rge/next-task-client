@@ -1,11 +1,8 @@
 import { Divider } from "@/components";
 import BoardCard from "@/components/BoardCard";
-import { Layout, Text } from "@lifesg/react-design-system";
-import Head from "next/head";
-import React from "react";
-import styled from "styled-components";
-import { headers } from "../../next.config";
 import type { Board } from "@/models/Board";
+import { Layout, Text } from "@lifesg/react-design-system";
+import styled from "styled-components";
 
 const BoardGrid = styled.div`
 	padding: 2rem;
@@ -22,17 +19,12 @@ interface BoardsProps {
 	data: Board[];
 }
 
-function boards({ data }: BoardsProps) {
+export default function boards({ data }: BoardsProps) {
     return (
-        <>
-            <Head>
-                <title>NextTask</title>
-                <meta name="viewport" content="width=device-width, initial-scale=1" />
-                <link rel="icon" href="/favicon.ico" />
-            </Head>
+        <> 
             <Layout.Content type="flex-column">
                 <Title>
-					Boards
+					Your Board
                 </Title>
                 <Divider />
                 <BoardGrid>
@@ -58,5 +50,3 @@ export async function getServerSideProps() {
 
     return { props: { data } };
 }
-
-export default boards;
