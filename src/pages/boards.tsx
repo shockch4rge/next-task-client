@@ -1,8 +1,17 @@
-import { Divider } from "@/components";
+import { ButtonIcon, Divider } from "@/components";
 import BoardCard from "@/components/BoardCard";
 import type { Board } from "@/models/Board";
-import { Layout, Text } from "@lifesg/react-design-system";
+import { Layout, Modal, Text, Form, Button } from "@lifesg/react-design-system";
+import { PlusCircleIcon } from "@lifesg/react-icons";
+import { Form as FormikForm, Formik, Field } from "formik";
+import { useState } from "react";
 import styled from "styled-components";
+
+const BoardTitle = styled.div`
+	display: flex;
+	justify-content: space-between;
+	padding-right: 2rem;
+`;
 
 const BoardGrid = styled.div`
 	padding: 2rem;
@@ -15,17 +24,72 @@ const Title = styled(Text.D1)`
 	padding: 1rem 2rem;
 `;
 
+const ModalContainer = styled.div`
+	padding: 1rem 2.5rem;
+`;
+
 interface BoardsProps {
 	data: Board[];
 }
 
-export default function boards({ data }: BoardsProps) {
+const AddBoardModal = ({ show, onOverlayClick }: {show: boolean; onOverlayClick: () => void}) => {
+    return (
+        <Modal show={show} onOverlayClick={onOverlayClick} >
+            <Modal.Box onClose={onOverlayClick}>
+                <ModalContainer>
+                    <Text.D2>Add Board</Text.D2>
+                    <br />
+                    <Formik 
+                        initialValues={{
+                            title: "", 
+                            description: "" 
+                        }} 
+						
+                        onSubmit={values => {
+                            console.log(values);
+                        }}
+                    >
+                        <FormikForm
+						 style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "1rem",
+                            }}
+                        >
+                            <div>
+                                <Field name={"title"} as={Form.Input} label="Title" />
+                            </div>
+                            <div>
+                                <Field name={"description"} as={Form.Textarea} label="Description" />
+                            </div>
+                            <Button.Default type="submit" style={{
+                                margin: "0.5rem 0rem",
+                            }}>
+								Submit
+                            </Button.Default>
+                        </FormikForm>
+                    </Formik>
+                </ModalContainer>
+            </Modal.Box>
+	   </Modal>
+    );
+};
+
+export default function Boards({ data }: BoardsProps) {
+
+    const [isBoardModalOpen, setIsBoardModalOpen] = useState(false);
+
     return (
         <> 
             <Layout.Content type="flex-column">
-                <Title>
-					Your Board
-                </Title>
+                <BoardTitle>
+                    <Title>
+						Boards
+                    </Title>
+                    <ButtonIcon onClick={() => setIsBoardModalOpen(true)}>
+                        <PlusCircleIcon fontSize={"1.5rem"} />
+                    </ButtonIcon>
+                </BoardTitle>
                 <Divider />
                 <BoardGrid>
                     {data.map(board => 
@@ -33,7 +97,7 @@ export default function boards({ data }: BoardsProps) {
                     )}
                 </BoardGrid>
             </Layout.Content>
-
+            <AddBoardModal show={isBoardModalOpen} onOverlayClick={() => setIsBoardModalOpen(false)} />
         </>
     );
 }
@@ -44,7 +108,7 @@ export async function getServerSideProps() {
             headers: {
                 "Content-Type": "application/json",
                 "Accept": "application/json",
-                "Authorization": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImM5M2RiMTZjLTBkZGItNDc1MS1iNGM4LTEwNWE3MTQzZDkzNSIsImlhdCI6MTY4MTEwNzQ0NX0.LHclSiOb8O3Dno7XW-r7vmjPo_kOhWvkQAtJCHh0QBrKm3cWmJzXTMqYZukof6nsir4rjA3ZalK5qgY2uTnE_2r_In_DDySwxf69DZavCpi-HWXOLDmcNvXvZsROVbEzeATa8pVOkvLhuKz1xN6hQMAgZW6h3jvypc224jxaP6wVbWwwDlXlACVAR5MYiEg4o7B6AZdORgjJ6cqTSERpZmhsI5MgKAul3qFQu9th48neJWRNDJUuEXKMk2tBiMy5rcxWJBNVwqdoZAaVvvy4sFAPVNJnH-hGhuwwTEHkGOQ6EmPn89JNrcDU_PIL9LJw5-ATfc2NlNhQztZh9-QIjg"
+                "Authorization": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVmYjlhZWU5LTI1NDEtNGJkOS1iMzdjLTU1NDhiNmZjYmRjYyIsImlhdCI6MTY4MTI3MDY2N30.sAgfYNdDsMr1lRLb749k60GZxcaYgWwZtZmsAsUsP_qi9CumzXGhRka7bJ6KlKiSw1tBo0rXl_jYelnTcW4IXzPSvwYVqaCC9UZPmsk5tLx3NRnzl03xIvRa7rqUkMx78VJW3OA2kD0gy3P8E5axV9q57v-2m4hC22fvophNriYrsYOs6I0LDcOWJ8H-AqpBaHrJhG5gee3J7UfkxPXEq7IaFpfID-b_zDVtQUJV9DHE46evPLZUtTG0DFmoa2UmI3WhiU0fGeL-BcC8z2nsmcO8AYTs_QrAGpitlkHEzlQRFX01VDJL6s-nFDp2aBLIN1YAmB6KYwwm41yBWh9Zog"
             } });
     const data = await res.json();
 
