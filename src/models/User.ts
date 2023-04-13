@@ -1,16 +1,12 @@
-import { IsArray, IsEmail, IsString, IsUUID } from "class-validator";
+import { IsEmail, IsString, IsUUID } from "class-validator";
 
 export class User {
     @IsUUID()
-    readonly id!: string;
+    public readonly id!: string;
 
     @IsString()
-    readonly name!: string;
+    public readonly name!: string;
 
     @IsEmail()
-    readonly email!: string;
-
-    // TODO
-    // @IsArray()
-    // readonly tasks!: Task[];
+    public readonly email!: string;
 }
