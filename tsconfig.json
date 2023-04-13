@@ -14,10 +14,12 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "experimentalDecorators": true,
     "paths": {
       "@/*": ["./src/*"],
       "@/components": ["./src/components"],
       "@/pages": ["./src/pages"],
+      "@/util": ["./src/util"],
     }
   },
   "include": ["next-env.d.ts", "**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"],
