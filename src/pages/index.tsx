@@ -1,14 +1,15 @@
-import Image from "next/image";
 import { Layout, Text } from "@lifesg/react-design-system";
+import Image from "next/image";
+
+
 
 export default function Home() {
-    
 
     return (		
         <>
             <Layout.Container
                 style={{
-                    height: "100vh",
+                    height: "75vh",
                     alignItems: "center",
                     justifyContent: "center",
                 }}
@@ -24,6 +25,6 @@ export default function Home() {
                     src="/feature-img.svg"
                 />
             </Layout.Container>  
-        </>
+s        </>
     );
 }
