@@ -3,7 +3,9 @@ import BoardCard from "@/components/BoardCard";
 import type { Board } from "@/models/Board";
 import { Layout, Modal, Text, Form, Button } from "@lifesg/react-design-system";
 import { PlusCircleIcon } from "@lifesg/react-icons";
-import { Form as FormikForm, Formik, Field } from "formik";
+import { Form as FormikForm, Formik, Field, ErrorMessage } from "formik";
+import Error from "next/error";
+import { useRouter } from "next/router";
 import { useState } from "react";
 import styled from "styled-components";
 
@@ -33,6 +35,41 @@ interface BoardsProps {
 }
 
 const AddBoardModal = ({ show, onOverlayClick }: {show: boolean; onOverlayClick: () => void}) => {
+
+    const fields = {
+        title: "title",
+        description: "description",
+    } as const;
+
+    const router = useRouter();
+
+    const createNewBoard = async (value: Pick<Board, "description" | "title">) => {
+        const newBoard = {
+            title: value.title,
+            description: value.description,
+        };
+        
+        try {
+            const res = await fetch(`http://localhost:4000/boards`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    //TODO: Get token from local storage
+                    "Authorization": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVmYjlhZWU5LTI1NDEtNGJkOS1iMzdjLTU1NDhiNmZjYmRjYyIsImlhdCI6MTY4MTI3MDY2N30.sAgfYNdDsMr1lRLb749k60GZxcaYgWwZtZmsAsUsP_qi9CumzXGhRka7bJ6KlKiSw1tBo0rXl_jYelnTcW4IXzPSvwYVqaCC9UZPmsk5tLx3NRnzl03xIvRa7rqUkMx78VJW3OA2kD0gy3P8E5axV9q57v-2m4hC22fvophNriYrsYOs6I0LDcOWJ8H-AqpBaHrJhG5gee3J7UfkxPXEq7IaFpfID-b_zDVtQUJV9DHE46evPLZUtTG0DFmoa2UmI3WhiU0fGeL-BcC8z2nsmcO8AYTs_QrAGpitlkHEzlQRFX01VDJL6s-nFDp2aBLIN1YAmB6KYwwm41yBWh9Zog"
+                },
+                body: JSON.stringify(newBoard),
+            });
+
+            router.replace(router.asPath);
+            onOverlayClick();
+
+        }
+        catch (err) {
+            console.error(err);
+        }
+    };
+
     return (
         <Modal show={show} onOverlayClick={onOverlayClick} >
             <Modal.Box onClose={onOverlayClick}>
@@ -45,8 +82,9 @@ const AddBoardModal = ({ show, onOverlayClick }: {show: boolean; onOverlayClick:
                             description: "" 
                         }} 
 						
-                        onSubmit={values => {
-                            console.log(values);
+                        onSubmit={async (values, { resetForm }) => {
+                            await createNewBoard(values);
+                            resetForm();
                         }}
                     >
                         <FormikForm
@@ -57,10 +95,12 @@ const AddBoardModal = ({ show, onOverlayClick }: {show: boolean; onOverlayClick:
                             }}
                         >
                             <div>
-                                <Field name={"title"} as={Form.Input} label="Title" />
+                                <Field name={fields.title} as={Form.Input} label="Title" />
+                                <ErrorMessage name={fields.title} />
                             </div>
                             <div>
-                                <Field name={"description"} as={Form.Textarea} label="Description" />
+                                <Field name={fields.description} as={Form.Textarea} label="Description" />
+                                <ErrorMessage name={fields.description} />
                             </div>
                             <Button.Default type="submit" style={{
                                 margin: "0.5rem 0rem",
@@ -93,7 +133,7 @@ export default function Boards({ data }: BoardsProps) {
                 <Divider />
                 <BoardGrid>
                     {data.map(board => 
-                        <BoardCard key={board.id} id={board.id} title={board.description} description={board.description} />
+                        <BoardCard key={board.id} id={board.id} title={board.title} description={board.description} />
                     )}
                 </BoardGrid>
             </Layout.Content>
@@ -108,9 +148,11 @@ export async function getServerSideProps() {
             headers: {
                 "Content-Type": "application/json",
                 "Accept": "application/json",
+                //TODO: Get token from local storage
                 "Authorization": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVmYjlhZWU5LTI1NDEtNGJkOS1iMzdjLTU1NDhiNmZjYmRjYyIsImlhdCI6MTY4MTI3MDY2N30.sAgfYNdDsMr1lRLb749k60GZxcaYgWwZtZmsAsUsP_qi9CumzXGhRka7bJ6KlKiSw1tBo0rXl_jYelnTcW4IXzPSvwYVqaCC9UZPmsk5tLx3NRnzl03xIvRa7rqUkMx78VJW3OA2kD0gy3P8E5axV9q57v-2m4hC22fvophNriYrsYOs6I0LDcOWJ8H-AqpBaHrJhG5gee3J7UfkxPXEq7IaFpfID-b_zDVtQUJV9DHE46evPLZUtTG0DFmoa2UmI3WhiU0fGeL-BcC8z2nsmcO8AYTs_QrAGpitlkHEzlQRFX01VDJL6s-nFDp2aBLIN1YAmB6KYwwm41yBWh9Zog"
             } });
     const data = await res.json();
 
     return { props: { data } };
+    
 }
