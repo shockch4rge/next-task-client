@@ -1,6 +1,7 @@
 import { ButtonIcon, Divider } from "@/components";
 import BoardCard from "@/components/BoardCard";
 import type { Board } from "@/models/Board";
+import { ApiRoutes } from "@/util/ApiRoute";
 import { Layout, Modal, Text, Form, Button } from "@lifesg/react-design-system";
 import { PlusCircleIcon } from "@lifesg/react-icons";
 import { Form as FormikForm, Formik, Field, ErrorMessage } from "formik";
@@ -58,7 +59,7 @@ const AddBoardModal = ({ show, onOverlayClick }: {show: boolean; onOverlayClick:
         };
         
         try {
-            const res = await fetch(`http://localhost:4000/boards`, {
+            const res = await fetch(ApiRoutes.GetBoardsByUserId(), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -151,7 +152,7 @@ export default function Boards({ data }: BoardsProps) {
 }
 
 export async function getServerSideProps() {
-    const res = await fetch(`http://localhost:4000/boards`, 
+    const res = await fetch(ApiRoutes.GetBoardsByUserId(), 
         { 	method: "GET",
             headers: {
                 "Content-Type": "application/json",
