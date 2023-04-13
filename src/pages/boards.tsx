@@ -6,8 +6,9 @@ import { PlusCircleIcon } from "@lifesg/react-icons";
 import { Form as FormikForm, Formik, Field, ErrorMessage } from "formik";
 import Error from "next/error";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import styled from "styled-components";
+import * as Yup from "yup";
 
 const BoardTitle = styled.div`
 	display: flex;
@@ -35,13 +36,20 @@ interface BoardsProps {
 }
 
 const AddBoardModal = ({ show, onOverlayClick }: {show: boolean; onOverlayClick: () => void}) => {
+	
+    const router = useRouter();
 
     const fields = {
         title: "title",
         description: "description",
     } as const;
 
-    const router = useRouter();
+    const schema = useMemo(() => Yup.object().shape({
+        [fields.title]: Yup.string().required("Title is required"),
+        [fields.description]: Yup.string().required("Description is required"),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }), []);
+
 
     const createNewBoard = async (value: Pick<Board, "description" | "title">) => {
         const newBoard = {
@@ -77,6 +85,7 @@ const AddBoardModal = ({ show, onOverlayClick }: {show: boolean; onOverlayClick:
                     <Text.D2>Add Board</Text.D2>
                     <br />
                     <Formik 
+                        validationSchema={schema}
                         initialValues={{
                             title: "", 
                             description: "" 
@@ -87,7 +96,8 @@ const AddBoardModal = ({ show, onOverlayClick }: {show: boolean; onOverlayClick:
                             resetForm();
                         }}
                     >
-                        <FormikForm
+						
+                        {({ errors }) => <FormikForm
 						 style={{
                                 display: "flex",
                                 flexDirection: "column",
@@ -95,19 +105,17 @@ const AddBoardModal = ({ show, onOverlayClick }: {show: boolean; onOverlayClick:
                             }}
                         >
                             <div>
-                                <Field name={fields.title} as={Form.Input} label="Title" />
-                                <ErrorMessage name={fields.title} />
+                                <Field name={fields.title} as={Form.Input} label="Title" errorMessage={errors.title} />
                             </div>
                             <div>
-                                <Field name={fields.description} as={Form.Textarea} label="Description" />
-                                <ErrorMessage name={fields.description} />
+                                <Field name={fields.description} as={Form.Textarea} label="Description" errorMessage={errors.description} />
                             </div>
                             <Button.Default type="submit" style={{
                                 margin: "0.5rem 0rem",
                             }}>
 								Submit
                             </Button.Default>
-                        </FormikForm>
+                        </FormikForm>}
                     </Formik>
                 </ModalContainer>
             </Modal.Box>
