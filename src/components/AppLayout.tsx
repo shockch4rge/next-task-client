@@ -255,7 +255,7 @@ export default function AppLayout({ children }: {children: React.ReactNode}) {
                         ],
                     }}
                     selectedId={"home"}
-                    compress={scrollPosition > 100}
+                    compress={scrollPosition > 0}
                     resources={{
                         primary: {
                             brandName: "NextTask",
