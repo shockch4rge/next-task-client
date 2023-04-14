@@ -1,24 +1,29 @@
 import { ErrorMessage, Field, Formik, Form as FormikForm } from "formik";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import * as Yup from "yup";
 
 import { ButtonIcon } from "@/components";
-import type { User } from "@/models/User";
+import { User } from "@/models/User";
 import { ApiRoutes } from "@/util/ApiRoute";
 import { AppRoutes } from "@/util/AppRoute";
 import { Button, Footer, Form, Modal, Navbar, Text } from "@lifesg/react-design-system";
 import { ArrowRightIcon } from "@lifesg/react-icons/arrow-right";
 import { EyeFillIcon } from "@lifesg/react-icons/eye-fill";
 import { EyeSlashFillIcon } from "@lifesg/react-icons/eye-slash-fill";
+import type { AxiosResponse } from "axios";
 import axios from "axios";
 import { api } from "@/api";
+import Link from "next/link";
+import { AuthContext } from "@/contexts/AuthContext";
+import { plainToInstance } from "class-transformer";
 
 const LoginModal = ({ show, onClose }: { show: boolean; onClose: () => void }) => {
     // TODO: add router.push to redirect to board page
     const router = useRouter();
+    const auth = useContext(AuthContext);
     const [showPassword, setShowPassword] = useState(true);
 
     const fields = {
@@ -32,6 +37,16 @@ const LoginModal = ({ show, onClose }: { show: boolean; onClose: () => void }) =
             .required("Your email is required."),
         [fields.password]: Yup.string().required("A password is required."),
     });
+
+    const saveUserInfo = (res: AxiosResponse) => {
+        auth.token = res.data.token;
+        auth.user = plainToInstance(User, {
+            id: res.data.id,
+            name: res.data.name,
+            email: res.data.email,
+        });
+        localStorage.setItem("token", res.data.token);
+    };
 
     return (
         <Modal show={show} onOverlayClick={onClose}>
@@ -50,11 +65,15 @@ const LoginModal = ({ show, onClose }: { show: boolean; onClose: () => void }) =
                         email: "",
                         password: "",
                     }}
-                    onSubmit={async (values, { resetForm }) => {
-                        await api({ useToken: false }).post(ApiRoutes.LoginUser(), values);
-                        resetForm();
-                        onClose();
-                    }}
+                    onSubmit={
+                        async (values, { resetForm }) => {
+                            const res = await api({ useToken: false }).post(ApiRoutes.LoginUser(), values);
+                            saveUserInfo(res);
+                            resetForm();
+                            onClose();
+
+                            console.log(auth);
+                        }}	
                 >
                     {({ isSubmitting, isValid, errors }) => 
                         <FormikForm
@@ -100,15 +119,7 @@ const LoginModal = ({ show, onClose }: { show: boolean; onClose: () => void }) =
                             >
                                 Login <ArrowRightIcon />
                             </Button.Default>
-                            <Text.Hyperlink.Small
-                                href={AppRoutes.Home()}
-                                style={{
-                                    textAlign: "center",
-                                    textDecoration: "underline",
-                                }}
-                            >
-                                Register
-                            </Text.Hyperlink.Small>
+                            
                         </FormikForm>
                     }
                 </Formik>
@@ -239,15 +250,7 @@ const SignUpModal = ({ show, onClose }: { show: boolean; onClose: () => void }) 
                             >
                                 Sign Up <ArrowRightIcon />
                             </Button.Default>
-                            <Text.Hyperlink.Small
-                                href={AppRoutes.Home()}
-                                style={{
-                                    textAlign: "center",
-                                    textDecoration: "underline",
-                                }}
-                            >
-                                Login
-                            </Text.Hyperlink.Small>
+                            
                         </FormikForm>
                     }
                 </Formik>
