@@ -2,11 +2,11 @@ import { IsUUID, IsString } from "class-validator";
 
 export class Board {
 	@IsUUID()
-    readonly id!: string;
+    public readonly id!: string;
 
 	@IsString()
-	readonly title!: string;
+	public readonly title!: string;
 
 	@IsString()
-	readonly description!: string;
+	public readonly description!: string;
 }

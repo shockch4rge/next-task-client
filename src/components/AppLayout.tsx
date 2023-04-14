@@ -13,76 +13,25 @@ import { Button, Footer, Form, Modal, Navbar, Text } from "@lifesg/react-design-
 import { ArrowRightIcon } from "@lifesg/react-icons/arrow-right";
 import { EyeFillIcon } from "@lifesg/react-icons/eye-fill";
 import { EyeSlashFillIcon } from "@lifesg/react-icons/eye-slash-fill";
+import axios from "axios";
+import { api } from "@/api";
 
 const LoginModal = ({ show, onClose }: { show: boolean; onClose: () => void }) => {
-    return (
-        <Modal show={show} onOverlayClick={onClose}>
-            <Modal.Box
-                onClose={onClose}
-                style={{
-                    padding: "3rem 2rem",
-                    minHeight: "24rem",
-                    overflow: "auto",
-                }}
-            >
-                <Text.D3 style={{ marginBottom: "1.5rem" }}>Login</Text.D3>
-                <Form.Input label="Email" />
-                <Form.Input label="Password" />
-                <Button.Default
-                    onClick={() => {}}
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        margin: "1rem 0",
-                    }}
-                >
-                    Login <ArrowRightIcon />
-                </Button.Default>
-                <Text.Hyperlink.Small
-                    href={AppRoutes.Home()}
-                    style={{
-                        textAlign: "center",
-                        textDecoration: "underline",
-                    }}
-                >
-                    Register
-                </Text.Hyperlink.Small>
-            </Modal.Box>
-        </Modal>
-    );
-};
-
-const SignUpModal = ({ show, onClose }: { show: boolean; onClose: () => void }) => {
     // TODO: add router.push to redirect to board page
     const router = useRouter();
     const [showPassword, setShowPassword] = useState(true);
-    const { data, error } = useSWR<User, Error>(
-        ApiRoutes.GetUserById("123"),
-        key => fetch(key).then()
-    );
 
     const fields = {
-        name: "name",
         email: "email",
         password: "password",
-        confirmPassword: "confirmPassword",
     } as const;
 
-    const schema = useMemo(
-        () =>
-            Yup.object().shape({
-                [fields.name]: Yup.string().required("Name is required."),
-                [fields.email]: Yup.string()
-                    .email("Invalid email")
-                    .required("Your email is required."),
-                [fields.password]: Yup.string().required("A password is required."),
-                [fields.confirmPassword]: Yup.string()
-                    .oneOf([Yup.ref(fields.password)], "Passwords must match")
-                    .required("You must confirm your password."),
-            }),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        []
-    );
+    const schema = Yup.object().shape({
+        [fields.email]: Yup.string()
+            .email("Invalid email")
+            .required("Your email is required."),
+        [fields.password]: Yup.string().required("A password is required."),
+    });
 
     return (
         <Modal show={show} onOverlayClick={onClose}>
@@ -98,31 +47,28 @@ const SignUpModal = ({ show, onClose }: { show: boolean; onClose: () => void }) 
                 <Formik
                     validationSchema={schema}
                     initialValues={{
-                        name: "",
                         email: "",
                         password: "",
-                        confirmPassword: "",
                     }}
-                    onSubmit={async values => {
-                        console.log(values);
+                    onSubmit={async (values, { resetForm }) => {
+                        await api({ useToken: false }).post(ApiRoutes.LoginUser(), values);
+                        resetForm();
+                        onClose();
                     }}
                 >
-                    {({ isSubmitting, isValid }) => 
+                    {({ isSubmitting, isValid, errors }) => 
                         <FormikForm
+                            key={"login-form"}
                             style={{ display: "flex", flexDirection: "column", gap: "2em" }}
                         >
                             <div>
-                                <Field name={fields.name} as={Form.Input} label="Name" />
-                                <ErrorMessage name={fields.name} />
-                            </div>
-                            <div>
-                                <Field name={fields.email} as={Form.Input} label="Email" />
-                                <ErrorMessage name={fields.email} />
+                                <Field name={fields.email} as={Form.Input} label="Email" errorMessage={errors.email}/>
                             </div>
                             <div>
                                 <Field
                                     name={fields.password}
                                     as={Form.InputGroup}
+                                    errorMessage={errors.password}
                                     label="Password"
                                     addon={{
                                         type: "custom",
@@ -144,12 +90,124 @@ const SignUpModal = ({ show, onClose }: { show: boolean; onClose: () => void }) 
                                         position: "right",
                                     }}
                                 />
-                                <ErrorMessage name={fields.password} />
+                            </div>
+
+                            <Button.Default
+                                disabled={!isValid || isSubmitting}
+                                loading={isSubmitting}
+                                type="submit"
+                                style={{ marginTop: "1rem" }}
+                            >
+                                Login <ArrowRightIcon />
+                            </Button.Default>
+                            <Text.Hyperlink.Small
+                                href={AppRoutes.Home()}
+                                style={{
+                                    textAlign: "center",
+                                    textDecoration: "underline",
+                                }}
+                            >
+                                Register
+                            </Text.Hyperlink.Small>
+                        </FormikForm>
+                    }
+                </Formik>
+            </Modal.Box>
+        </Modal>
+    );
+};
+
+const SignUpModal = ({ show, onClose }: { show: boolean; onClose: () => void }) => {
+    // TODO: add router.push to redirect to board page
+    const router = useRouter();
+    const [showPassword, setShowPassword] = useState(true);
+
+    const fields = {
+        name: "name",
+        email: "email",
+        password: "password",
+        confirmPassword: "confirmPassword",
+    } as const;
+
+    const schema = Yup.object().shape({
+        [fields.name]: Yup.string().required("Name is required."),
+        [fields.email]: Yup.string()
+            .email("Invalid email")
+            .required("Your email is required."),
+        [fields.password]: Yup.string().required("A password is required."),
+        [fields.confirmPassword]: Yup.string()
+            .oneOf([Yup.ref(fields.password)], "Passwords must match")
+            .required("You must confirm your password."),
+    });
+
+    return (
+        <Modal show={show} onOverlayClick={onClose}>
+            <Modal.Box
+                onClose={onClose}
+                style={{
+                    padding: "2rem 2rem",
+                    minHeight: "30rem",
+                    overflow: "auto",
+                }}
+            >
+                <Text.D3 style={{ marginBottom: "1.5rem" }}>Sign Up</Text.D3>
+                <Formik
+                    key={"signup-form"}
+                    validationSchema={schema}
+                    initialValues={{
+                        name: "",
+                        email: "",
+                        password: "",
+                        confirmPassword: "",
+                    }}
+                    onSubmit={async ({ confirmPassword, ...values }, { resetForm }) => {
+                        await api({ useToken: false }).post(ApiRoutes.RegisterUser(), values);
+                        resetForm();
+                        onClose();
+                    }}
+                >
+                    {({ isSubmitting, isValid, errors }) => 
+                        <FormikForm
+                            style={{ display: "flex", flexDirection: "column", gap: "2em" }}
+                        >
+                            <div>
+                                <Field name={fields.name} as={Form.Input} label="Name" errorMessage={errors.name} />
+                            </div>
+                            <div>
+                                <Field name={fields.email} as={Form.Input} label="Email" errorMessage={errors.email} />
+                            </div>
+                            <div>
+                                <Field
+                                    name={fields.password}
+                                    as={Form.InputGroup}
+                                    errorMessage={errors.password}
+                                    label="Password"
+                                    addon={{
+                                        type: "custom",
+                                        attributes: {
+                                            children: 
+                                                <ButtonIcon
+                                                    onClick={() => setShowPassword(!showPassword)}
+                                                    focusOutline="browser"
+                                                    focusHighlight={false}
+                                                >
+                                                    {showPassword ? 
+                                                        <EyeFillIcon />
+                                                        : 
+                                                        <EyeSlashFillIcon />
+                                                    }
+                                                </ButtonIcon>
+                                            ,
+                                        },
+                                        position: "right",
+                                    }}
+                                />
                             </div>
                             <div>
                                 <Field
                                     name={fields.confirmPassword}
                                     as={Form.InputGroup}
+                                    errorMessage={errors.confirmPassword}
                                     label="Confirm Password"
                                     addon={{
                                         type: "custom",
@@ -171,7 +229,6 @@ const SignUpModal = ({ show, onClose }: { show: boolean; onClose: () => void }) 
                                         position: "right",
                                     }}
                                 />
-                                <ErrorMessage name={fields.confirmPassword} />
                             </div>
 
                             <Button.Default
@@ -255,7 +312,7 @@ export default function AppLayout({ children }: {children: React.ReactNode}) {
                         ],
                     }}
                     selectedId={"home"}
-                    compress={scrollPosition > 100}
+                    compress={scrollPosition > 0}
                     resources={{
                         primary: {
                             brandName: "NextTask",

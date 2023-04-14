@@ -1,5 +1,9 @@
 export const baseRoute = "http://localhost:4000";
 export const ApiRoutes = {
-    GetUserById: (id: string) => `${baseRoute}/user/${id}`,
-    GetBoardsByUserId: () => `${baseRoute}/boards`,
+    GetUserById: (id: string) => `${baseRoute}/users/${id}`,
+    RegisterUser: () => `${baseRoute}/users/auth/register`,
+    LoginUser: () => `${baseRoute}/users/auth/login`,
+    GetUserBoards: () => `${baseRoute}/boards`,
+    CreateBoard: () => `${baseRoute}/boards`,
+    GetBoardById: (id: string) => `${baseRoute}/boards/${id}`,
 } satisfies Record<string, (...args: any[]) => string>;

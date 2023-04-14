@@ -1,18 +1,20 @@
 import type { DocumentContext } from "next/document";
 import Document from "next/document";
 import { ServerStyleSheet } from "styled-components";
+import { resetServerContext } from "react-beautiful-dnd";
 
 export default class MyDocument extends Document {
     static async getInitialProps(ctx: DocumentContext) {
         const sheet = new ServerStyleSheet();
         const originalRenderPage = ctx.renderPage;
-
+        
         try {
+            resetServerContext();
             ctx.renderPage = () =>
                 originalRenderPage({
                     enhanceApp: App => props => sheet.collectStyles(<App {...props} />),
                 });
-
+            
             const initialProps = await Document.getInitialProps(ctx);
             return {
                 ...initialProps,

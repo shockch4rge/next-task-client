@@ -5,11 +5,14 @@ import { ApiRoutes } from "@/util/ApiRoute";
 import { Layout, Modal, Text, Form, Button } from "@lifesg/react-design-system";
 import { PlusCircleIcon } from "@lifesg/react-icons";
 import { Form as FormikForm, Formik, Field, ErrorMessage } from "formik";
+import type { GetServerSidePropsContext } from "next";
 import Error from "next/error";
 import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
 import styled from "styled-components";
 import * as Yup from "yup";
+import useSWR from "swr";
+import { api } from "@/api";
 
 const BoardTitle = styled.div`
 	display: flex;
@@ -37,7 +40,6 @@ interface BoardsProps {
 }
 
 const AddBoardModal = ({ show, onOverlayClick }: {show: boolean; onOverlayClick: () => void}) => {
-	
     const router = useRouter();
 
     const fields = {
@@ -59,20 +61,9 @@ const AddBoardModal = ({ show, onOverlayClick }: {show: boolean; onOverlayClick:
         };
         
         try {
-            const res = await fetch(ApiRoutes.GetBoardsByUserId(), {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Accept": "application/json",
-                    //TODO: Get token from local storage
-                    "Authorization": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVmYjlhZWU5LTI1NDEtNGJkOS1iMzdjLTU1NDhiNmZjYmRjYyIsImlhdCI6MTY4MTI3MDY2N30.sAgfYNdDsMr1lRLb749k60GZxcaYgWwZtZmsAsUsP_qi9CumzXGhRka7bJ6KlKiSw1tBo0rXl_jYelnTcW4IXzPSvwYVqaCC9UZPmsk5tLx3NRnzl03xIvRa7rqUkMx78VJW3OA2kD0gy3P8E5axV9q57v-2m4hC22fvophNriYrsYOs6I0LDcOWJ8H-AqpBaHrJhG5gee3J7UfkxPXEq7IaFpfID-b_zDVtQUJV9DHE46evPLZUtTG0DFmoa2UmI3WhiU0fGeL-BcC8z2nsmcO8AYTs_QrAGpitlkHEzlQRFX01VDJL6s-nFDp2aBLIN1YAmB6KYwwm41yBWh9Zog"
-                },
-                body: JSON.stringify(newBoard),
-            });
-
+            const res = await api().post(ApiRoutes.CreateBoard(), newBoard);
             router.replace(router.asPath);
             onOverlayClick();
-
         }
         catch (err) {
             console.error(err);
@@ -124,9 +115,17 @@ const AddBoardModal = ({ show, onOverlayClick }: {show: boolean; onOverlayClick:
     );
 };
 
-export default function Boards({ data }: BoardsProps) {
 
+export default function Boards({ data }: BoardsProps) {
+    const { data: boards } = useSWR<Board[]>(ApiRoutes.GetUserBoards(), url => fetch(url, {
+        method: "GET",
+        headers: {
+            Authorization: localStorage.getItem("token")!,
+        }
+    }).then(res => res.json()));
     const [isBoardModalOpen, setIsBoardModalOpen] = useState(false);
+
+    if (!boards) return <></>;
 
     return (
         <> 
@@ -141,7 +140,7 @@ export default function Boards({ data }: BoardsProps) {
                 </BoardTitle>
                 <Divider />
                 <BoardGrid>
-                    {data.map(board => 
+                    {boards.map(board => 
                         <BoardCard key={board.id} id={board.id} title={board.title} description={board.description} />
                     )}
                 </BoardGrid>
@@ -149,19 +148,4 @@ export default function Boards({ data }: BoardsProps) {
             <AddBoardModal show={isBoardModalOpen} onOverlayClick={() => setIsBoardModalOpen(false)} />
         </>
     );
-}
-
-export async function getServerSideProps() {
-    const res = await fetch(ApiRoutes.GetBoardsByUserId(), 
-        { 	method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-                //TODO: Get token from local storage
-                "Authorization": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVmYjlhZWU5LTI1NDEtNGJkOS1iMzdjLTU1NDhiNmZjYmRjYyIsImlhdCI6MTY4MTI3MDY2N30.sAgfYNdDsMr1lRLb749k60GZxcaYgWwZtZmsAsUsP_qi9CumzXGhRka7bJ6KlKiSw1tBo0rXl_jYelnTcW4IXzPSvwYVqaCC9UZPmsk5tLx3NRnzl03xIvRa7rqUkMx78VJW3OA2kD0gy3P8E5axV9q57v-2m4hC22fvophNriYrsYOs6I0LDcOWJ8H-AqpBaHrJhG5gee3J7UfkxPXEq7IaFpfID-b_zDVtQUJV9DHE46evPLZUtTG0DFmoa2UmI3WhiU0fGeL-BcC8z2nsmcO8AYTs_QrAGpitlkHEzlQRFX01VDJL6s-nFDp2aBLIN1YAmB6KYwwm41yBWh9Zog"
-            } });
-    const data = await res.json();
-
-    return { props: { data } };
-    
 }
